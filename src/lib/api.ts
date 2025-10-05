@@ -1,5 +1,11 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+// Headers untuk ngrok
+const getHeaders = () => ({
+  'Content-Type': 'application/json',
+  'ngrok-skip-browser-warning': 'true',
+});
+
 export interface Subject {
   subject_id: number;
   name: string;
@@ -19,7 +25,9 @@ export interface Task {
 // Subject endpoints
 export const subjectApi = {
   getAll: async (): Promise<Subject[]> => {
-    const response = await fetch(`${API_BASE_URL}/subjects`);
+    const response = await fetch(`${API_BASE_URL}/subjects`, {
+      headers: getHeaders(),
+    });
     if (!response.ok) throw new Error('Failed to fetch subjects');
     return response.json();
   },
@@ -27,7 +35,7 @@ export const subjectApi = {
   create: async (name: string): Promise<Subject> => {
     const response = await fetch(`${API_BASE_URL}/subjects`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify({ name }),
     });
     if (!response.ok) throw new Error('Failed to create subject');
@@ -37,6 +45,7 @@ export const subjectApi = {
   delete: async (subjectId: number): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}`, {
       method: 'DELETE',
+      headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to delete subject');
   },
@@ -45,15 +54,19 @@ export const subjectApi = {
 // Task endpoints
 export const taskApi = {
   getBySubject: async (subjectId: number): Promise<Task[]> => {
-    const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}/tasks`);
+    if (!subjectId) throw new Error('Subject ID is required');
+    const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}/tasks`, {
+      headers: getHeaders(),
+    });
     if (!response.ok) throw new Error('Failed to fetch tasks');
     return response.json();
   },
 
   create: async (subjectId: number, task: Omit<Task, 'task_id' | 'subject_id' | 'created_at'>): Promise<Task> => {
+    if (!subjectId) throw new Error('Subject ID is required');
     const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}/tasks`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(task),
     });
     if (!response.ok) throw new Error('Failed to create task');
@@ -61,9 +74,10 @@ export const taskApi = {
   },
 
   update: async (subjectId: number, taskId: number, task: Partial<Omit<Task, 'task_id' | 'subject_id' | 'created_at'>>): Promise<Task> => {
+    if (!subjectId || !taskId) throw new Error('Subject ID and Task ID are required');
     const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}/tasks/${taskId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(task),
     });
     if (!response.ok) throw new Error('Failed to update task');
@@ -71,8 +85,10 @@ export const taskApi = {
   },
 
   delete: async (subjectId: number, taskId: number): Promise<void> => {
+    if (!subjectId || !taskId) throw new Error('Subject ID and Task ID are required');
     const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}/tasks/${taskId}`, {
       method: 'DELETE',
+      headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Failed to delete task');
   },
