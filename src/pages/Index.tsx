@@ -13,7 +13,8 @@ const Index = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [subjectsLoading, setSubjectsLoading] = useState(false);
+  const [tasksLoading, setTasksLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [subjectModalOpen, setSubjectModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -27,16 +28,13 @@ const Index = () => {
 
   // Load tasks when subject changes
   useEffect(() => {
-    if (selectedSubject) {
-      loadTasks(selectedSubject.id);
-    } else {
-      setTasks([]);
-    }
+    if (selectedSubject) loadTasks(selectedSubject.id);
+    else setTasks([]);
   }, [selectedSubject]);
 
   const loadSubjects = async () => {
     try {
-      setLoading(true);
+      setSubjectsLoading(true);
       const data = await subjectApi.getAll();
       setSubjects(data);
       if (data.length > 0 && !selectedSubject) {
@@ -49,36 +47,34 @@ const Index = () => {
         description: 'Failed to load subjects. Please check your API connection.',
       });
     } finally {
-      setLoading(false);
+      setSubjectsLoading(false);
     }
   };
 
   const loadTasks = async (subjectId: number) => {
     try {
-      setLoading(true);
+      setTasksLoading(true);
       const data = await taskApi.getBySubject(subjectId);
       setTasks(data);
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load tasks.',
-      });
+      // Jangan tampilkan error kalau task belum ada
+      console.warn('No tasks found for this subject or failed to load.');
+      setTasks([]);
     } finally {
-      setLoading(false);
+      setTasksLoading(false);
     }
   };
 
   const handleAddSubject = async (name: string) => {
     try {
       const newSubject = await subjectApi.create(name);
-      setSubjects([...subjects, newSubject]);
-      setSelectedSubject(newSubject);
+      await loadSubjects(); // reload seluruh daftar subject
+      setSelectedSubject(newSubject); // pindah ke subject baru
       toast({
         title: 'Success',
         description: 'Subject added successfully!',
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -90,16 +86,13 @@ const Index = () => {
   const handleDeleteSubject = async (subject: Subject) => {
     try {
       await subjectApi.delete(subject.id);
-      const newSubjects = subjects.filter(s => s.id !== subject.id);
-      setSubjects(newSubjects);
-      if (selectedSubject?.id === subject.id) {
-        setSelectedSubject(newSubjects[0] || null);
-      }
+      await loadSubjects();
+      if (selectedSubject?.id === subject.id) setSelectedSubject(null);
       toast({
         title: 'Success',
         description: 'Subject deleted successfully!',
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -111,13 +104,13 @@ const Index = () => {
   const handleAddTask = async (taskData: Omit<Task, 'id' | 'subject_id' | 'created_at'>) => {
     if (!selectedSubject) return;
     try {
-      const newTask = await taskApi.create(selectedSubject.id, taskData);
-      setTasks([...tasks, newTask]);
+      await taskApi.create(selectedSubject.id, taskData);
+      await loadTasks(selectedSubject.id); // refresh daftar task
       toast({
         title: 'Success',
         description: 'Task added successfully!',
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -129,18 +122,14 @@ const Index = () => {
   const handleUpdateTask = async (taskData: Omit<Task, 'id' | 'subject_id' | 'created_at'>) => {
     if (!selectedSubject || !editingTask) return;
     try {
-      const updatedTask = await taskApi.update(
-        selectedSubject.id,
-        editingTask.id,
-        taskData
-      );
-      setTasks(tasks.map(t => t.id === editingTask.id ? updatedTask : t));
+      await taskApi.update(selectedSubject.id, editingTask.id, taskData);
+      await loadTasks(selectedSubject.id); // refresh task list
       setEditingTask(null);
       toast({
         title: 'Success',
         description: 'Task updated successfully!',
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -153,12 +142,12 @@ const Index = () => {
     if (!selectedSubject) return;
     try {
       await taskApi.delete(selectedSubject.id, task.id);
-      setTasks(tasks.filter(t => t.id !== task.id));
+      await loadTasks(selectedSubject.id);
       toast({
         title: 'Success',
         description: 'Task deleted successfully!',
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -170,7 +159,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setSidebarOpen(true)} />
-      
       <div className="flex">
         <Sidebar
           subjects={subjects}
@@ -204,7 +192,7 @@ const Index = () => {
                 </Button>
               </div>
 
-              {loading ? (
+              {tasksLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
@@ -237,6 +225,10 @@ const Index = () => {
                   ))}
                 </div>
               )}
+            </div>
+          ) : subjectsLoading ? (
+            <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
@@ -282,3 +274,4 @@ const Index = () => {
 };
 
 export default Index;
+

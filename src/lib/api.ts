@@ -76,7 +76,7 @@ export const taskApi = {
   update: async (subjectId: number, taskId: number, task: Partial<Omit<Task, 'id' | 'subject_id' | 'created_at'>>): Promise<Task> => {
     if (!subjectId || !taskId) throw new Error('Subject ID and Task ID are required');
     const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}/tasks/${taskId}`, {
-      method: 'PUT',
+      method: 'PATCH',
       headers: getHeaders(),
       body: JSON.stringify(task),
     });

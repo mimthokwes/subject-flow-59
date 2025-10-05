@@ -22,23 +22,27 @@ export const TaskModal = ({ isOpen, onClose, onSave, task }: TaskModalProps) => 
     status: 'pending' as Task['status'],
   });
 
-  useEffect(() => {
-    if (task) {
-      setFormData({
-        title: task.title,
-        description: task.description || '',
-        due_date: task.due_date || '',
-        status: task.status,
-      });
-    } else {
-      setFormData({
-        title: '',
-        description: '',
-        due_date: '',
-        status: 'pending',
-      });
-    }
-  }, [task, isOpen]);
+useEffect(() => {
+  if (task) {
+    setFormData({
+      title: task.title,
+      description: task.description || '',
+      // 🔧 convert ke format YYYY-MM-DD
+      due_date: task.due_date
+        ? new Date(task.due_date).toISOString().split('T')[0]
+        : '',
+      status: task.status,
+    });
+  } else {
+    setFormData({
+      title: '',
+      description: '',
+      due_date: '',
+      status: 'pending',
+    });
+  }
+}, [task, isOpen]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
