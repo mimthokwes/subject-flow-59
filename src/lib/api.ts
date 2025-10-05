@@ -7,13 +7,13 @@ const getHeaders = () => ({
 });
 
 export interface Subject {
-  subject_id: number;
+  id: number;
   name: string;
   created_at?: string;
 }
 
 export interface Task {
-  task_id: number;
+  id: number;
   subject_id: number;
   title: string;
   description?: string;
@@ -42,8 +42,8 @@ export const subjectApi = {
     return response.json();
   },
 
-  delete: async (subjectId: number): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}`, {
+  delete: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/subjects/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
@@ -62,7 +62,7 @@ export const taskApi = {
     return response.json();
   },
 
-  create: async (subjectId: number, task: Omit<Task, 'task_id' | 'subject_id' | 'created_at'>): Promise<Task> => {
+  create: async (subjectId: number, task: Omit<Task, 'id' | 'subject_id' | 'created_at'>): Promise<Task> => {
     if (!subjectId) throw new Error('Subject ID is required');
     const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}/tasks`, {
       method: 'POST',
@@ -73,7 +73,7 @@ export const taskApi = {
     return response.json();
   },
 
-  update: async (subjectId: number, taskId: number, task: Partial<Omit<Task, 'task_id' | 'subject_id' | 'created_at'>>): Promise<Task> => {
+  update: async (subjectId: number, taskId: number, task: Partial<Omit<Task, 'id' | 'subject_id' | 'created_at'>>): Promise<Task> => {
     if (!subjectId || !taskId) throw new Error('Subject ID and Task ID are required');
     const response = await fetch(`${API_BASE_URL}/subjects/${subjectId}/tasks/${taskId}`, {
       method: 'PUT',

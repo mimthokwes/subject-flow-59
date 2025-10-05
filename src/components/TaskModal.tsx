@@ -10,7 +10,7 @@ import { Task } from '@/lib/api';
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: Omit<Task, 'task_id' | 'subject_id' | 'created_at'>) => void;
+  onSave: (task: Omit<Task, 'id' | 'subject_id' | 'created_at'>) => void;
   task?: Task | null;
 }
 

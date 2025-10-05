@@ -28,7 +28,7 @@ const Index = () => {
   // Load tasks when subject changes
   useEffect(() => {
     if (selectedSubject) {
-      loadTasks(selectedSubject.subject_id);
+      loadTasks(selectedSubject.id);
     } else {
       setTasks([]);
     }
@@ -89,10 +89,10 @@ const Index = () => {
 
   const handleDeleteSubject = async (subject: Subject) => {
     try {
-      await subjectApi.delete(subject.subject_id);
-      const newSubjects = subjects.filter(s => s.subject_id !== subject.subject_id);
+      await subjectApi.delete(subject.id);
+      const newSubjects = subjects.filter(s => s.id !== subject.id);
       setSubjects(newSubjects);
-      if (selectedSubject?.subject_id === subject.subject_id) {
+      if (selectedSubject?.id === subject.id) {
         setSelectedSubject(newSubjects[0] || null);
       }
       toast({
@@ -108,10 +108,10 @@ const Index = () => {
     }
   };
 
-  const handleAddTask = async (taskData: Omit<Task, 'task_id' | 'subject_id' | 'created_at'>) => {
+  const handleAddTask = async (taskData: Omit<Task, 'id' | 'subject_id' | 'created_at'>) => {
     if (!selectedSubject) return;
     try {
-      const newTask = await taskApi.create(selectedSubject.subject_id, taskData);
+      const newTask = await taskApi.create(selectedSubject.id, taskData);
       setTasks([...tasks, newTask]);
       toast({
         title: 'Success',
@@ -126,15 +126,15 @@ const Index = () => {
     }
   };
 
-  const handleUpdateTask = async (taskData: Omit<Task, 'task_id' | 'subject_id' | 'created_at'>) => {
+  const handleUpdateTask = async (taskData: Omit<Task, 'id' | 'subject_id' | 'created_at'>) => {
     if (!selectedSubject || !editingTask) return;
     try {
       const updatedTask = await taskApi.update(
-        selectedSubject.subject_id,
-        editingTask.task_id,
+        selectedSubject.id,
+        editingTask.id,
         taskData
       );
-      setTasks(tasks.map(t => t.task_id === editingTask.task_id ? updatedTask : t));
+      setTasks(tasks.map(t => t.id === editingTask.id ? updatedTask : t));
       setEditingTask(null);
       toast({
         title: 'Success',
@@ -152,8 +152,8 @@ const Index = () => {
   const handleDeleteTask = async (task: Task) => {
     if (!selectedSubject) return;
     try {
-      await taskApi.delete(selectedSubject.subject_id, task.task_id);
-      setTasks(tasks.filter(t => t.task_id !== task.task_id));
+      await taskApi.delete(selectedSubject.id, task.id);
+      setTasks(tasks.filter(t => t.id !== task.id));
       toast({
         title: 'Success',
         description: 'Task deleted successfully!',
@@ -226,7 +226,7 @@ const Index = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {tasks.map((task) => (
                     <TaskCard
-                      key={task.task_id}
+                      key={task.id}
                       task={task}
                       onEdit={(task) => {
                         setEditingTask(task);

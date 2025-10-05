@@ -66,10 +66,10 @@ export const Sidebar = ({
             ) : (
               subjects.map((subject) => (
                 <div
-                  key={subject.subject_id}
+                  key={subject.id}
                   className={cn(
                     "group relative flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200",
-                    selectedSubject?.subject_id === subject.subject_id
+                    selectedSubject?.id === subject.id
                       ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-md"
                       : "hover:bg-sidebar-accent/50"
                   )}
