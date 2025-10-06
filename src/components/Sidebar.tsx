@@ -2,6 +2,17 @@ import { Plus, Trash2, BookOpen, X } from 'lucide-react';
 import { Subject } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface SidebarProps {
   subjects: Subject[];
@@ -13,6 +24,40 @@ interface SidebarProps {
   onClose: () => void;
 }
 
+// Komponen konfirmasi hapus
+const ConfirmDeleteDialog = ({
+  title,
+  description,
+  onConfirm,
+  triggerIcon,
+}: {
+  title: string;
+  description: string;
+  onConfirm: () => void;
+  triggerIcon: React.ReactNode;
+}) => (
+  <AlertDialog>
+    <AlertDialogTrigger asChild>
+      <button>{triggerIcon}</button>
+    </AlertDialogTrigger>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>{title}</AlertDialogTitle>
+        <AlertDialogDescription>{description}</AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction
+          onClick={onConfirm}
+          className="bg-red-600 hover:bg-red-700"
+        >
+          Delete
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+);
+
 export const Sidebar = ({
   subjects,
   selectedSubject,
@@ -20,7 +65,7 @@ export const Sidebar = ({
   onAddSubject,
   onDeleteSubject,
   isOpen,
-  onClose
+  onClose,
 }: SidebarProps) => {
   return (
     <>
@@ -32,7 +77,7 @@ export const Sidebar = ({
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar utama */}
       <aside
         className={cn(
           "fixed md:sticky top-0 left-0 z-50 h-screen w-64 border-r border-border bg-sidebar transition-transform duration-300 ease-in-out",
@@ -57,7 +102,7 @@ export const Sidebar = ({
             </Button>
           </div>
 
-          {/* Subjects list */}
+          {/* List subjects */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {subjects.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
@@ -79,23 +124,25 @@ export const Sidebar = ({
                   }}
                 >
                   <span className="font-medium truncate">{subject.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteSubject(subject);
-                    }}
+                  <div
+                    className="flex-shrink-0 ml-2"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                    <ConfirmDeleteDialog
+                      title={`Hapus ${subject.name}?`}
+                      description="Tindakan ini tidak bisa dibatalkan dan semua task di dalamnya akan ikut terhapus."
+                      onConfirm={() => onDeleteSubject(subject)}
+                      triggerIcon={
+                        <Trash2 className="h-5 w-5 text-red-500 hover:text-red-600 transition-transform duration-200 hover:scale-110" />
+                      }
+                    />
+                  </div>
                 </div>
               ))
             )}
           </div>
 
-          {/* Add subject button */}
+          {/* Tombol tambah subject */}
           <div className="p-4 border-t border-sidebar-border">
             <Button
               onClick={onAddSubject}
@@ -110,3 +157,4 @@ export const Sidebar = ({
     </>
   );
 };
+
